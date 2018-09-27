@@ -22,7 +22,7 @@ def main():
     train_loader = data_factory.make_dataloader('mnist', 100, is_train = True)
     net = BayesMLP(device = device).to(device)
     optimizer = torch.optim.Adam(net.parameters())
-    for epoch in range(50):
+    for epoch in range(20):
         train(net, optimizer, epoch, train_loader, device = device)
     torch.save(net.state_dict(), 'checkpoint/mnist/bayes/bayesMlp.pth')
 if __name__ == '__main__':

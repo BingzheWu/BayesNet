@@ -2,7 +2,7 @@ import torch
 from bayes_network import BayesMLP
 from dataset import data_factory
 import numpy as np
-TEST_SAMPLES = 10
+TEST_SAMPLES = 2
 TEST_BATCH_SIZE = 10
 def test_ensemble(net, test_loader, device, test_size):
     net.eval()
@@ -16,7 +16,7 @@ def test_ensemble(net, test_loader, device, test_size):
             for i in range(TEST_SAMPLES):
                 outputs[i] = net(data, sample=True)
             outputs[TEST_SAMPLES] = net(data, sample=False)
-            output = outputs.mean(0)
+            output = outputs[0:TEST_SAMPLES].mean(0)
             preds = preds = outputs.max(2, keepdim=True)[1]
             pred = output.max(1, keepdim=True)[1] # index of max log-probability
             corrects += preds.eq(target.view_as(pred)).sum(dim=1).squeeze().cpu().numpy()
