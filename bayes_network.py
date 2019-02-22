@@ -6,6 +6,8 @@ from utils import Gaussian, ScaleMixtureGaussian
 import math
 import torch.nn.functional as F
 from bayes_layers import BayesConvLayer, BayesLinearLayer
+
+
 class BayesMLP(nn.Module):
     def __init__(self, num_classes = 10, device = None):
         super().__init__()
@@ -14,16 +16,19 @@ class BayesMLP(nn.Module):
         self.l1 = BayesLinearLayer(28*28, 400, device)
         self.l2 = BayesLinearLayer(400, 400, device)
         self.l3 = BayesLinearLayer(400, 10, device)
+
     def forward(self, x, sample = False):
         x = x.view(-1, 28*28)
         x = F.relu(self.l1(x, sample))
         x = F.relu(self.l2(x, sample))
         x = F.log_softmax(self.l3(x, sample), dim = 1)
         return x
+
     def log_prior(self):
         return self.l1.log_prior \
                + self.l2.log_prior \
                + self.l3.log_prior
+
     def log_variational_posterior(self):
         return self.l1.log_variational_posterior \
                + self.l2.log_variational_posterior \
@@ -44,6 +49,7 @@ class BayesMLP(nn.Module):
         loss = (log_variational_posterior - log_prior)/batch_size + negative_log_likelihood
         return loss, log_prior, log_variational_posterior, negative_log_likelihood
 
+
 class BayesLeNet(nn.Module):
     def __init__(self, num_classes, device = None):
         super(BayesLeNet, self).__init__()
@@ -54,6 +60,7 @@ class BayesLeNet(nn.Module):
         self.fc1 = BayesLinearLayer(16*5*5, 120, device = device)
         self.fc2 = BayesLinearLayer(120, 84, device = device)
         self.fc3 = BayesLinearLayer(84, 10, device = device)
+
     def forward(self, x, sample = False):
         x = F.relu(self.conv1(x, sample))
         x = F.max_pool2d(x, 2)
@@ -65,12 +72,14 @@ class BayesLeNet(nn.Module):
         x = self.fc3(x, sample)
         x = F.log_softmax(x, dim = 1)
         return x
+
     def log_prior(self):
         return self.conv1.log_prior \
                + self.conv2.log_prior \
                + self.fc1.log_prior \
                + self.fc2.log_prior \
                + self.fc3.log_prior
+
     def log_variational_posterior(self):
         return self.conv1.log_variational_posterior \
                + self.conv2.log_variational_posterior \

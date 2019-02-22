@@ -1,8 +1,8 @@
 import torch
-from bayes_network import BayesMLP, BayesLeNet
+from models.minist_models import BayesLeNet
 from dataset import data_factory
 import numpy as np
-TEST_SAMPLES = 5
+TEST_SAMPLES = 2
 TEST_BATCH_SIZE = 10
 def test_ensemble(net, test_loader, device, test_size):
     net.eval()
@@ -31,7 +31,7 @@ def test_ensemble(net, test_loader, device, test_size):
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = BayesLeNet(num_classes = 10, device = device)
-    net.load_state_dict(torch.load('checkpoint/mnist/bayes/bayesLeNet.pth'))
+    net.load_state_dict(torch.load('exp/mnist/bayes/bayesLeNet.pth'))
     test_loader = data_factory.make_dataloader('mnist', 10, is_train = False)
     test_size = len(test_loader)
     test_ensemble(net, test_loader, device, test_size)

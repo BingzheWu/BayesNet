@@ -1,0 +1,25 @@
+dataset: 'idc'
+dataroot: '/home/bingzhe/dataset/dp'
+imageSize: 32
+num_classes: 10
+num_folds: 4
+data_workers: 16
+batch_size: 128
+arch: 'SquareAlexNet'
+
+log_level: 'INFO'
+log_config:
+  interval: 50
+total_epochs: 100
+work_dir: 'exp/square_alexnet_idc'
+checkpoint_config:
+  interval: 50
+resume: False
+load_from: None
+optimizer:
+  type: 'Adam'
+  lr: 0.001
+  weight_decay: 0.00005
+lr_config:
+  policy: 'step'
+  step: 20
