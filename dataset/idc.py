@@ -3,7 +3,7 @@ from dataset.dataset_utils import *
 import torch.utils.data as data
 import torchvision
 
-
+"""
 def make_dataset(dir, mode='train'):
     paient_id_file = 'cases_' + mode + '.txt'
     paient_id_file = os.path.join(dir, paient_id_file)
@@ -26,18 +26,39 @@ def make_dataset(dir, mode='train'):
         print("num of n: %d" % (num_dict[0]))
         print("num of p: %d" % (num_dict[1]))
     return images_labels
+"""
+
+
+def make_dataset(dir, patient_id_file):
+    paient_id_file = os.path.join(dir, patient_id_file)
+    images_labels = []
+    num = 0
+    with open(paient_id_file, 'r') as f:
+        num_dict = {0: 0, 1: 0}
+        for img_labels in f.readlines():
+            img_labels = img_labels.strip().split(',')
+            img_path, label, memberhsip = img_labels
+            label = int(label)
+            item = (img_path, label)
+            images_labels.append(item)
+            num_dict[label] += 1
+            if num > 0:
+                if num_dict[0] + num_dict[1] > num:
+                    break
+        print("num of n: %d" % (num_dict[0]))
+        print("num of p: %d" % (num_dict[1]))
+    return images_labels
 
 
 class IDC(data.Dataset):
     def __init__(self, opt, mode='train', loader=pil_loader):
         super(IDC, self).__init__()
-        self.imgs = make_dataset(opt.dataroot, mode)
+        self.imgs = make_dataset(opt.dataroot, opt.fold_file)
         self.img_num = len(self.imgs)
         self.mode = mode
         self.opt = opt
         self.transform_ = self.transform()
         self.loader = loader
-        #self.is_train = opt.is_train
 
     def __getitem__(self, index):
         path, target = self.imgs[index]
@@ -47,20 +68,19 @@ class IDC(data.Dataset):
         else:
             trans = torchvision.transforms
             transform_val = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.ToTensor(),
-                                           trans.Normalize((0, 0, 0), (224, 224, 224))])
+                                           trans.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
             transform_val = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.ToTensor()])
             img = transform_val(img)
         return img, target
 
     def transform(self):
         trans = torchvision.transforms
-        # transform = trans.Compose([trans.Resize(self.opt.imageSize), trans.ToTensor()])
         transform = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.RandomHorizontalFlip(),
                                    trans.RandomVerticalFlip(), trans.ToTensor(),
-                                   trans.Normalize((0, 0, 0), (224, 224, 224))])
-        transform_val = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.ToTensor()])
+                                   trans.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         transform = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.RandomHorizontalFlip(),
                                    trans.RandomVerticalFlip(), trans.ToTensor()])
+        transform = trans.Compose([trans.Resize((self.opt.imageSize, self.opt.imageSize)), trans.ToTensor()])
         return transform
 
     def __len__(self):

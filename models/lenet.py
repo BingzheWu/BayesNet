@@ -17,8 +17,8 @@ class CryptoNet(nn.Module):
         super(CryptoNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 5, kernel_size=5, stride=2, padding=0)
         self.relu1 = nn.ReLU()
-        self.pool1 = nn.AvgPool2d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(180, 100)
+        #self.pool1 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.fc1 = nn.Linear(720, 100)
         self.relu2 = nn.ReLU()
         self.fc2 = nn.Linear(100, 10)
 

@@ -3,11 +3,15 @@ import torch.nn.functional as F
 from collections import OrderedDict
 from argparse import ArgumentParser
 import logging
+from mmcv import Config
 import datetime
 from mmcv.runner import Runner
 from mmcv.runner.hooks import Hook, OptimizerHook, IterTimerHook, CheckpointHook
 import random
-
+import sys
+sys.path.append('.')
+from  optimizer.sgld import SGLD
+import optimizer.sgld
 
 def accuracy(output, target, topk=(1,)):
     with torch.no_grad():
@@ -26,9 +30,10 @@ def accuracy(output, target, topk=(1,)):
 
 def batch_processor(model, data, train_mode):
     img, label = data
+    img = img.cuda()
     label = label.cuda(non_blocking=True)
     pred = model(img)
-    loss = F.cross_entropy(pred, label)
+    loss = F.cross_entropy(pred, label, reduction='sum')
     acc = accuracy(pred, label, topk=(1,))[0]
     log_vars = OrderedDict()
     log_vars['loss'] = loss.item()
@@ -71,3 +76,18 @@ def parse_args():
     return parser.parse_args()
 
 
+def parse_cfg(cfg_file):
+    cfg = Config.fromfile(cfg_file)
+    print(cfg.optimizer)
+    print(sys.modules['sgld'])
+
+
+def parse_optimizer(cfg, runner):
+    if cfg.optimizer.type == 'SGLD':
+        optimizer = SGLD(params=runner.model.parameters(), lr=0.01, norm_sigma=0.1)
+        runner.optimizer = optimizer
+    return runner
+
+
+if __name__ == '__main__':
+    parse_cfg('config/alexnet_idc.yaml')

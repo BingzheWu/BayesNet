@@ -11,16 +11,16 @@ log_level: 'INFO'
 log_config:
   interval: 50
 total_epochs: 100
-work_dir: 'exp/normal_alexnet_idc'
+work_dir: 'exp/sgld_alexnet_idc'
 checkpoint_config:
   interval: 50
 resume: False
 load_from: None
 optimizer:
-  type: 'SGD'
+  type: 'SGLD'
   lr: 0.0001
-  momentum: 0.9
-  weight_decay: 0.00005
+  norm_sigma: 0.0001
+  addnoise: True
 lr_config:
   policy: 'step'
-  step: 20
+  step: 50

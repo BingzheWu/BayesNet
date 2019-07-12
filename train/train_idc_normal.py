@@ -1,23 +1,18 @@
-import torch
 import sys
 sys.path.append('.')
-from utils import write_loss_scalars
-from utils import write_weight_histograms
-from models.minist_models import BayesLeNet
-from dataset import data_factory
-from train.train_utils import parse_args, bayes_batch_processor, get_logger
+from train.train_utils import batch_processor, parse_args, get_logger, parse_optimizer
 from mmcv import Config
-from mmcv.runner import Runner
+from models.model_factory import model_creator
+from train.train_runner import Runner
 from torch.nn.parallel import DataParallel
 from dataset.data_factory import make_dataset, make_dataloader
-from models.model_factory import model_creator
+import os
 
 
-def main():
+def run_by_fold_idx(fold_idx=1):
     args = parse_args()
     cfg = Config.fromfile(args.cfg_file)
     print(cfg)
-    logger = get_logger(cfg.log_level)
     if args.launcher == 'none':
         dist = False
     else:
@@ -30,22 +25,24 @@ def main():
         train_sampler = None
         val_sampler = None
         shuffle = True
-    train_dataset = make_dataset(cfg, True)
+    train_fold_file = os.path.join(cfg.dataroot, 'kfold2', 'fold_'+str(fold_idx)+'_train.txt')
+    val_fold_file = os.path.join(cfg.dataroot, 'kfold2', 'fold_' + str(fold_idx) + '_test.txt')
+    cfg.fold_file = train_fold_file
+    train_dataset = make_dataset(cfg)
     train_loader = make_dataloader(train_dataset, batch_size, num_workers, shuffle, train_sampler)
-    val_dataset = make_dataset(cfg, False)
+    cfg.fold_file = val_fold_file
+    val_dataset = make_dataset(cfg)
     val_loader = make_dataloader(val_dataset, batch_size, num_workers, shuffle, val_sampler)
     model = model_creator(cfg)
     if dist:
         pass
     else:
-        #model = DataParallel(model, device_ids=[0, 1]).cuda()
-        device = 'cuda'
-        model = model.to(device)
-        #model = DataParallel(model, device_ids=[0,1]).cuda()
+        model = DataParallel(model, device_ids=[0, 1, 2]).cuda()
+
     runner = Runner(
         model,
-        bayes_batch_processor,
-        None,
+        batch_processor,
+        cfg.optimizer,
         cfg.work_dir,
         log_level=cfg.log_level
     )
@@ -66,5 +63,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-
+    run_by_fold_idx()

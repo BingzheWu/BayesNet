@@ -1,4 +1,6 @@
 import sys
+import torchvision
+import torch.nn as nn
 sys.path.append('.')
 from models.point_estimation_models import LeNet, CifarNet, CifarLeNet
 from models.minist_models import BayesLeNet
@@ -32,6 +34,9 @@ def model_creator(cfg, device='cuda'):
         model = SquareAlexNet(cfg.num_classes)
     if cfg.arch == 'CryptoNet':
         model = CryptoNet()
+    if cfg.arch == 'resnet18':
+        model = torchvision.models.resnet18(pretrained=False)
+        model.fc = nn.Linear(512, cfg.num_classes)
     if cfg.resume:
         checkpoint = torch.load(cfg.resume)
         model.load_state_dict(checkpoint['state_dict'])

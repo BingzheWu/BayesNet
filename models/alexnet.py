@@ -85,11 +85,18 @@ class SquareAlexNet(nn.Module):
         x = self.classifier(x)
         return x
 
+    def forward_print_shape(self, x):
+        for module in self.features:
+            if hasattr(module, 'forward'):
+                x = module.forward(x)
+                print(x.size())
+
+
 def test():
     x = torch.ones((1, 3, 32, 32))
-    net = AlexNet(num_classes=10)
-    y = net(x)
-    print(y.size())
+    net = SquareAlexNet(num_classes=10)
+    net.forward_print_shape(x)
+    #print(y.size())
 
 
 if __name__ == '__main__':
